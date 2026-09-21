@@ -7,7 +7,7 @@ Fireflux 是一个独立的 Windows 桌面应用（Electron + Svelte），用来
 
 博客本身保持**纯静态**：客户端不改主题源码、不引入数据库，推送后由 GitHub Actions 自动构建上线。
 
-源码基线版本为 **0.1.0**。安装包在 [Releases](../../releases) 里下载；推送 `master` 时，GitHub Actions 会按发布工作流运行号自动生成新的 `0.1.x` 版本，推送 `vX.Y.Z` 标签时使用标签版本。
+源码基线版本为 **0.1.0**。安装包在 [Releases](../../releases) 里下载；推送 `master` 时，GitHub Actions 会把运行号按十进制进位生成三段版本号（例如运行号 11 为 `0.2.1`），每段都保持在 `0~9`；推送 `vX.Y.Z` 标签时使用标签版本，且标签也必须是三段单数字版本。
 
 > 首次运行安装包会触发 Windows SmartScreen 提示（未做代码签名）：点「更多信息 → 仍要运行」即可。
 
@@ -49,7 +49,7 @@ pnpm dev          # 开发模式启动
 pnpm dist
 ```
 
-推送到 `master` 分支后，GitHub Actions 会自动构建并发布 Release（见 `.github/workflows/release.yml`）。master 发布版本按 Release 工作流运行号生成 `0.1.x`；推送 `vX.Y.Z` 标签时使用标签版本；同一运行号重复执行只更新同一个 Release。
+推送到 `master` 分支后，GitHub Actions 会自动构建并发布 Release（见 `.github/workflows/release.yml`）。master 发布版本按 Release 工作流运行号十进制进位生成：1~9 对应 `0.1.1`~`0.1.9`，10 对应 `0.2.0`，11 对应 `0.2.1`；推送 `vX.Y.Z` 标签时使用标签版本，且每段限制为 `0~9`。
 
 ## 数据存放在哪里
 
