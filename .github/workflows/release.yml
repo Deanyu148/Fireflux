@@ -21,18 +21,15 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: 检出代码
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - name: 安装 pnpm
-        uses: pnpm/action-setup@v4
+      - name: 安装 pnpm 与 Node
+        uses: pnpm/setup@v3
         with:
           version: 11
-
-      - name: 安装 Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
+          runtime: node@22
+          cache: true
+          install: false
 
       - name: 安装依赖
         run: pnpm install --frozen-lockfile
