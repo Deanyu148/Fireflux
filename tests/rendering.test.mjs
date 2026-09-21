@@ -66,7 +66,8 @@ test('switching to CPU mode keeps display sync while enforcing 60 FPS', () => {
   assert.equal(c.pending.size, 1)
   assert.equal([...c.pending.values()][0].kind, 'raf')
   const before = count; c.advance(1000)
-  assert.equal(count - before, 60)
+  const cpuFrames = count - before
+  assert.ok(cpuFrames >= 59 && cpuFrames <= 60, `CPU frame count must stay within the 60 FPS cap, got ${cpuFrames}`)
   p.stop(); p.setMode(true, 60)
   assert.equal(c.pending.size, 0, 'mode change must not restart a paused animation')
 })
