@@ -58,14 +58,14 @@ jobs:
           echo "本次发版版本：v$VERSION"
 
       - name: 上传 Windows 安装包与便携 ZIP（Actions 页面留档，7 天后过期）
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: fireflux-${{ steps.pkg.outputs.version }}-windows
           path: release/*
           retention-days: 7
 
       - name: 创建 / 更新 Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ steps.pkg.outputs.version }}
           name: Fireflux v${{ steps.pkg.outputs.version }}
