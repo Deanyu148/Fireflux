@@ -9,9 +9,9 @@
 		setWallpaper: () => Promise<void>
 		clearWallpaper: () => Promise<void>
 		setAccent: (name: string, accent: string, deep: string) => Promise<void>
-		setDim: (v: number) => Promise<void>
-		setCardOpacity: (v: number) => Promise<void>
-		setSidebarOpacity: (v: number) => Promise<void>
+		setDim: (v: number) => void
+		setCardOpacity: (v: number) => void
+		setSidebarOpacity: (v: number) => void
 		setLive2dEnabled: (v: boolean) => Promise<void>
 		setGlobalFollow: (v: boolean) => Promise<void>
 		globalFollow: boolean
