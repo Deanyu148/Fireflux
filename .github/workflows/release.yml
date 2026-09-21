@@ -40,6 +40,12 @@ jobs:
       - name: 类型检查
         run: pnpm typecheck
 
+      - name: 检查 Svelte 组件
+        run: pnpm check:svelte
+
+      - name: 运行渲染调度回归测试
+        run: pnpm test:rendering
+
       # dist 脚本里必须带 --publish never：CI 环境下 electron-builder 会默认「顺手发布」到
       # GitHub 并要求 GH_TOKEN，和下面的 softprops 步骤重复，还会让整个 job 直接失败
       - name: 构建并打 Windows 安装包（NSIS）
@@ -53,11 +59,11 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "本次发版版本：v$VERSION"
 
-      - name: 上传安装包（Actions 页面留档，7 天后过期）
+      - name: 上传 Windows 安装包与便携 ZIP（Actions 页面留档，7 天后过期）
         uses: actions/upload-artifact@v4
         with:
-          name: fireflux-${{ steps.pkg.outputs.version }}-setup
-          path: release/*.exe
+          name: fireflux-${{ steps.pkg.outputs.version }}-windows
+          path: release/*
           retention-days: 7
 
       - name: 创建 / 更新 Release
@@ -65,7 +71,7 @@ jobs:
         with:
           tag_name: v${{ steps.pkg.outputs.version }}
           name: Fireflux v${{ steps.pkg.outputs.version }}
-          files: release/*.exe
+          files: release/*
           generate_release_notes: true
           make_latest: true
           draft: false
