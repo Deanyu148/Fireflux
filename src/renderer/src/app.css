@@ -1,0 +1,307 @@
+:root {
+	/* 卡片底色与不透明度：两个变量都由设置页写入（侧栏可单独调） */
+	--panel: 255, 255, 255;
+	--panel-alpha: 1;
+	--sidebar-alpha: 1;
+	--line: #d9ece6;
+	--text: #1d2b28;
+	--muted: #6f8a83;
+	--accent: #14b8a6;
+	--accent-deep: #0d9488;
+	--accent-soft: #dcf5ef;
+	--amber: #f59e0b;
+	--danger: #d94b4b;
+	--warn-bg: #fff7e6;
+	--mono: 'Cascadia Code', Consolas, 'Courier New', monospace;
+}
+* {
+	box-sizing: border-box;
+}
+html,
+body,
+#app {
+	height: 100%;
+	margin: 0;
+}
+html {
+	/* 拖拽窗口冻结期间露出的边缘不突兀 */
+	background: #eafaf6;
+}
+/* 拖拽窗口时冻结页面：#app 定格在拖拽开始的大小，停止后一次性恢复 */
+body.ff-freeze {
+	overflow: hidden;
+}
+body.ff-freeze #app {
+	contain: paint;
+	overflow: hidden;
+}
+/* 侧栏装饰光点已移除：软件渲染下这类装饰（哪怕已经改成静态）收益为零，
+   曾经用无限浮动动画时更是两个小点就吃掉约一整核 CPU（每帧强制整窗重新合成）。
+   新增动效/装饰前请先想清楚这条代价 */
+
+/* 空闲/失焦节能（App.svelte 维护该类）：暂停所有装饰动画，避免软件渲染持续全窗合成；
+   看板娘渲染循环由 ff-pause / ff-live / ff-static 消息单独控制，恢复活动后一切自动继续 */
+body.ff-idle *,
+body.ff-idle *::before,
+body.ff-idle *::after {
+	animation-play-state: paused !important;
+}
+/* 拖拽期间：整页禁用命中测试（事件目标退化为 body，window 上的监听不受影响），
+   消除光标扫过元素造成的 hover 重算/重绘，也让 iframe/webview 不再响应鼠标；
+   overflow:hidden 防止内容区跟随移动时出现滚动条 */
+body.ff-dragging {
+	overflow: hidden;
+}
+body.ff-dragging * {
+	pointer-events: none;
+}
+body {
+	font-family: 'Segoe UI', 'Microsoft YaHei', system-ui, sans-serif;
+	background: linear-gradient(155deg, #eafaf6 0%, #f4fbf8 45%, #fdf8ef 100%);
+	color: var(--text);
+	font-size: 14px;
+}
+/* 壁纸已烘焙成不透明位图铺满窗口时，把整窗渐变换成纯色：
+   渐变每帧重画一次约 0.03~0.06 CPU 秒，而它此时完全被壁纸盖住、根本看不见 */
+body.ff-baked-bg {
+	background: #f2f9f3;
+}
+h1,
+h2,
+h3 {
+	margin: 0 0 8px;
+}
+p {
+	margin: 6px 0;
+}
+button {
+	font: inherit;
+	cursor: pointer;
+}
+input,
+textarea,
+select {
+	font: inherit;
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	padding: 7px 10px;
+	width: 100%;
+	background: #fff;
+	color: var(--text);
+	outline: none;
+	transition: border-color 0.15s;
+	accent-color: var(--accent);
+}
+input:focus,
+textarea:focus,
+select:focus {
+	border-color: var(--accent);
+	box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.14);
+}
+textarea.code {
+	font-family: var(--mono);
+	font-size: 13px;
+	line-height: 1.6;
+	white-space: pre;
+	resize: vertical;
+}
+.btn {
+	border: 1px solid var(--line);
+	background: #fff;
+	border-radius: 8px;
+	padding: 7px 14px;
+	color: var(--text);
+	white-space: nowrap;
+	transition: all 0.15s;
+}
+.btn:hover {
+	border-color: var(--accent);
+	color: var(--accent-deep);
+}
+.btn.primary {
+	background: linear-gradient(135deg, #2dd4bf, var(--accent) 55%, var(--accent-deep));
+	border-color: transparent;
+	color: #fff;
+	box-shadow: 0 2px 10px rgba(20, 184, 166, 0.35);
+}
+.btn.primary:hover {
+	box-shadow: 0 3px 16px rgba(20, 184, 166, 0.55);
+	filter: brightness(1.04);
+	color: #fff;
+}
+.btn.danger {
+	color: var(--danger);
+	border-color: #f0c4c6;
+}
+.btn.small {
+	padding: 4px 10px;
+	font-size: 13px;
+}
+.btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+.card {
+	background: rgba(var(--panel), var(--panel-alpha));
+	border: 1px solid var(--line);
+	border-radius: 14px;
+	padding: 16px;
+	box-shadow: 0 2px 8px rgba(23, 108, 96, 0.06);
+}
+.muted {
+	color: var(--muted);
+	font-size: 13px;
+}
+.row {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+.tag {
+	display: inline-block;
+	padding: 2px 10px;
+	border-radius: 99px;
+	background: var(--accent-soft);
+	color: var(--accent-deep);
+	font-size: 12px;
+}
+.layout {
+	display: flex;
+	height: 100%;
+	position: relative;
+	z-index: 1;
+	padding: 10px;
+	box-sizing: border-box;
+}
+.sidebar {
+	background: linear-gradient(
+		180deg,
+		rgba(231, 248, 243, var(--sidebar-alpha)) 0%,
+		rgba(251, 254, 253, var(--sidebar-alpha)) 55%,
+		rgba(253, 246, 234, var(--sidebar-alpha)) 130%
+	);
+	border: 1px solid var(--line);
+	border-radius: 18px;
+	box-shadow: 0 6px 24px rgba(23, 108, 96, 0.1);
+	padding: 18px 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	flex-shrink: 0;
+	position: relative;
+	overflow: hidden;
+	box-sizing: border-box;
+}
+.brand {
+	font-weight: 800;
+	font-size: 16px;
+	padding: 4px 10px 16px;
+	background: linear-gradient(90deg, var(--accent-deep) 20%, var(--accent) 55%, var(--amber) 110%);
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+}
+.nav-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 12px;
+	border-radius: 10px;
+	border: none;
+	background: transparent;
+	color: var(--muted);
+	text-align: left;
+	width: 100%;
+	position: relative;
+	z-index: 1;
+	transition: all 0.15s;
+}
+.nav-item:hover {
+	color: var(--accent-deep);
+	background: rgba(255, 255, 255, 0.75);
+}
+.nav-item.active {
+	background: linear-gradient(90deg, var(--accent-soft), rgba(255, 255, 255, 0.9));
+	color: var(--accent-deep);
+	font-weight: 600;
+	box-shadow: inset 2px 0 0 var(--accent);
+}
+.content {
+	flex: 1;
+	overflow: auto;
+	padding: 12px 8px 12px 14px;
+	position: relative;
+	z-index: 1;
+	min-width: 0;
+	box-sizing: border-box;
+}
+.toast {
+	position: fixed;
+	right: 22px;
+	bottom: 22px;
+	max-width: 480px;
+	padding: 11px 16px;
+	border-radius: 10px;
+	background: #142e2a;
+	color: #fff;
+	box-shadow: 0 8px 30px rgba(13, 74, 66, 0.28);
+	z-index: 99;
+	white-space: pre-wrap;
+}
+.toast.err {
+	background: var(--danger);
+}
+.field {
+	margin: 10px 0;
+}
+.field > label,
+.flabel {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 5px;
+	font-size: 13.5px;
+}
+.hint {
+	color: var(--muted);
+	font-size: 12.5px;
+	margin-top: 3px;
+	line-height: 1.5;
+}
+fieldset.group {
+	border: 1px dashed var(--line);
+	border-radius: 10px;
+	padding: 4px 14px 10px;
+	margin: 8px 0;
+}
+fieldset.group > legend {
+	font-weight: 700;
+	font-size: 13px;
+	color: var(--accent);
+	padding: 0 6px;
+}
+.list-card {
+	border: 1px solid var(--line);
+	border-radius: 10px;
+	padding: 10px 12px;
+	margin: 8px 0;
+	background: #f8fdfb;
+}
+.list-card-head {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 4px;
+}
+.adv-box {
+	background: #f2f7f5;
+	border: 1px dashed #c4ddd5;
+	border-radius: 8px;
+	padding: 8px 10px;
+	font-family: var(--mono);
+	font-size: 12px;
+	color: #4b6360;
+	white-space: pre-wrap;
+	word-break: break-all;
+}
