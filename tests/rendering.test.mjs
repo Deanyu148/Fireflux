@@ -91,7 +91,7 @@ test('an enabled setting cannot misreport SwiftShader as hardware', () => {
 test('actual WebGL and compositing capabilities are independent', () => {
   const s = classifyGpuStatus(true, { webgl: 'enabled', gpu_compositing: 'disabled_software' }, 'ANGLE (Intel, Direct3D11)')
   assert.equal(s.webgl, 'hardware'); assert.equal(s.compositing, 'software')
-  assert.equal(classifyGpuStatus(true, { webgl: 'enabled' }, '').webgl, 'unknown')
+  assert.equal(classifyGpuStatus(true, { webgl: 'enabled' }, '').webgl, 'hardware')
   assert.equal(classifyGpuStatus(true, { webgl: 'disabled_off' }, '').webgl, 'unavailable')
   assert.equal(classifyGpuStatus(false, {}, '', true).webgl, 'software')
 })

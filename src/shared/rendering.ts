@@ -8,14 +8,18 @@ export function classifyGpuStatus(
 	forcedSoftware = false
 ): GpuStatus {
 	const software = /swiftshader|llvmpipe|softpipe|software|microsoft basic render/i.test(renderer)
-	function backend(feature?: string): RenderBackend {
+	function backend(feature?: string, assumeHardware = false): RenderBackend {
 		if (!feature) return 'unknown'
 		if (feature.includes('software')) return 'software'
-		if (feature.startsWith('enabled')) return software ? 'software' : renderer ? 'hardware' : 'unknown'
+		if (feature.startsWith('enabled')) return software ? 'software' : renderer || assumeHardware ? 'hardware' : 'unknown'
 		if (feature.startsWith('disabled') || feature === 'unavailable_off') return 'unavailable'
 		return 'unknown'
 	}
-	let webgl = backend(features.webgl)
-	if (forcedSoftware && webgl !== 'unavailable') webgl = 'software'
-	return { requestedHardware, webgl, compositing: backend(features.gpu_compositing), renderer }
+	let webgl = backend(features.webgl, requestedHardware)
+	let compositing = backend(features.gpu_compositing, requestedHardware)
+	if (forcedSoftware) {
+		if (webgl !== 'unavailable') webgl = 'software'
+		if (compositing !== 'unavailable') compositing = 'software'
+	}
+	return { requestedHardware, webgl, compositing, renderer }
 }

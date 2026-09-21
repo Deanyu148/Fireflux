@@ -46,16 +46,27 @@ jobs:
 
       # dist 脚本里必须带 --publish never：CI 环境下 electron-builder 会默认「顺手发布」到
       # GitHub 并要求 GH_TOKEN，和下面的 softprops 步骤重复，还会让整个 job 直接失败
-      - name: 构建并打 Windows 安装包（NSIS）
-        run: pnpm dist
-
-      - name: 读取版本号
+      - name: 计算发布版本
         id: pkg
         shell: bash
         run: |
-          VERSION=$(node -p "require('./package.json').version")
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="0.1.${GITHUB_RUN_NUMBER}"
+          fi
+          node - "$VERSION" <<'NODE'
+          const fs = require('node:fs')
+          const version = process.argv[2]
+          const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'))
+          packageJson.version = version
+          fs.writeFileSync('package.json', JSON.stringify(packageJson, null, '\t') + '\n')
+          NODE
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "本次发版版本：v$VERSION"
+
+      - name: 构建并打 Windows 安装包（NSIS）
+        run: pnpm dist
 
       - name: 上传 Windows 安装包与便携 ZIP（Actions 页面留档，7 天后过期）
         uses: actions/upload-artifact@v6
