@@ -95,6 +95,8 @@
 
 	function setLive2dPaused(paused: boolean): void {
 		if (paused) {
+			if (pointerFrame !== null) cancelAnimationFrame(pointerFrame)
+			pointerFrame = null
 			clearTimeout(pointerTimer)
 			pointerTimer = undefined
 			pendingPointer = null
@@ -143,14 +145,20 @@
 	let sentX = Number.NaN
 	let sentY = Number.NaN
 	let pointerTimer: ReturnType<typeof setTimeout> | undefined
+	let pointerFrame: number | null = null
+	let pointerLastSentAt = Number.NEGATIVE_INFINITY
 	let pendingPointer: { x: number; y: number } | null = null
-	let pointerSentAt = 0
 	function flushPointer(): void {
 		pointerTimer = undefined
+		pointerFrame = null
+		if (!pendingPointer || !live2dFrame || anyPaused() || !globalFollow) return
+		const now = performance.now()
+		if (!hardwareLive2d && now - pointerLastSentAt < 1000 / 60 - 0.05) {
+			pointerFrame = requestAnimationFrame(() => flushPointer())
+			return
+		}
 		const point = pendingPointer
 		pendingPointer = null
-		if (!point || !live2dFrame || anyPaused() || !globalFollow) return
-		const now = performance.now()
 		if (!frameRect || now - frameRectAt > 250) {
 			frameRect = live2dFrame.getBoundingClientRect()
 			frameRectAt = now
@@ -160,20 +168,19 @@
 		if (x === sentX && y === sentY) return
 		sentX = x
 		sentY = y
-		pointerSentAt = now
+		pointerLastSentAt = now
 		refreshLive()
 		live2dFrame.contentWindow?.postMessage({ type: 'ff-pointer', x, y }, '*')
 	}
 	function onPointerTrack(e: PointerEvent): void {
 		if (!live2dFrame || anyPaused() || !globalFollow) return
 		pendingPointer = { x: e.clientX, y: e.clientY }
-		if (pointerTimer) return
+		if (pointerTimer || pointerFrame !== null) return
 		if (hardwareLive2d) {
 			flushPointer()
 			return
 		}
-		const interval = 1000 / 60
-		pointerTimer = setTimeout(flushPointer, Math.max(0, interval - (performance.now() - pointerSentAt)))
+		pointerFrame = requestAnimationFrame(() => flushPointer())
 	}
 
 	function syncRenderMode(hardware = hardwareLive2d): void {
@@ -299,6 +306,8 @@
 			document.body.removeEventListener('ff-dragend', onDragEnd)
 			window.removeEventListener('pointermove', onPointerTrack, trackOpts)
 			clearTimeout(pointerTimer)
+			if (pointerFrame !== null) cancelAnimationFrame(pointerFrame)
+			pointerFrame = null
 			window.removeEventListener('blur', onBlur)
 			window.removeEventListener('focus', onFocus)
 			clearTimeout(freezeTimer)
@@ -330,6 +339,8 @@
 		try {
 			applyAppearance(await window.api.appearanceSet({ live2dGlobalFollow: v }))
 			if (!v) {
+				if (pointerFrame !== null) cancelAnimationFrame(pointerFrame)
+				pointerFrame = null
 				clearTimeout(pointerTimer)
 				pointerTimer = undefined
 				pendingPointer = null

@@ -1,4 +1,4 @@
-/* CPU rendering uses a timer capped at 60 FPS; GPU rendering follows every display rAF. */
+/* Display-synchronized animation: CPU capped at 60 FPS, GPU accepts every rAF. */
 (function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory();
   else root.FireflyFramePacer = factory();
@@ -8,73 +8,59 @@
     const now = options.now || (() => performance.now());
     const raf = options.raf || ((fn) => requestAnimationFrame(fn));
     const cancelRaf = options.cancelRaf || ((id) => cancelAnimationFrame(id));
-    const delay = options.delay || ((fn, ms) => setTimeout(fn, ms));
-    const cancelDelay = options.cancelDelay || ((id) => clearTimeout(id));
     const clampFps = (v) => Math.min(60, Math.max(1, Number(v) || 60));
+    const epsilon = 0.05; // Compensate for display timestamp rounding without admitting an extra frame.
     let hardware = !!options.hardware;
     let fps = clampFps(options.fps);
     let active = false;
     let handle = null;
     let last = null;
     let nextDue = null;
-    let firstTimerDelay = 0;
-    let scheduledHardware = false;
 
     function cancel() {
-      if (handle !== null) (scheduledHardware ? cancelRaf : cancelDelay)(handle);
+      if (handle !== null) cancelRaf(handle);
       handle = null;
     }
-
     function schedule() {
-      if (!active || handle !== null) return;
-      scheduledHardware = hardware;
-      if (hardware) {
-        // No software FPS gate here: every display callback is accepted, including 120/144 Hz.
-        handle = raf(frame);
-        return;
-      }
-      const current = now();
-      const interval = 1000 / fps;
-      if (nextDue === null) {
-        nextDue = current + firstTimerDelay;
-        firstTimerDelay = 0;
-      } else {
-        nextDue += interval;
-        // A slow CPU frame must not create a 4ms catch-up loop. Drop missed deadlines.
-        if (nextDue <= current) nextDue = current + interval;
-      }
-      handle = delay(frame, Math.max(0, nextDue - current));
+      if (active && handle === null) handle = raf(frame);
     }
-
-    function frame() {
+    function resetClock() {
+      last = null;
+      nextDue = hardware ? null : now() + 1000 / fps;
+    }
+    function frame(timestamp) {
       handle = null;
       if (!active) return;
-      const time = now();
+      // All callbacks in one display frame use the same time, regardless of JS workload.
+      const time = Number.isFinite(timestamp) ? timestamp : now();
+      if (!hardware) {
+        const interval = 1000 / fps;
+        if (time + epsilon < nextDue) { schedule(); return; }
+        // Carry fractional display intervals forward (e.g. 144 Hz -> 60 FPS, not 48).
+        // Skip missed deadlines in one step; never replay frames after a stall.
+        nextDue += (Math.floor(Math.max(0, time - nextDue + epsilon) / interval) + 1) * interval;
+      }
       const dt = last === null ? 1000 / (hardware ? 60 : fps) : Math.min(100, Math.max(0, time - last));
       last = time;
-      // Returning false freezes the last rendered image and cancels all future work.
-      if (options.onFrame(dt, time) === false) {
+      try {
+        if (options.onFrame(dt, time) === false) { stop(); return; }
+      } catch (error) {
         stop();
-        return;
+        throw error;
       }
       schedule();
     }
-
     function stop() {
       active = false;
       cancel();
       last = null;
       nextDue = null;
-      firstTimerDelay = 0;
     }
-
     return {
       start() {
         if (active) return;
         active = true;
-        last = null;
-        nextDue = null;
-        firstTimerDelay = 0;
+        resetClock();
         schedule();
       },
       stop,
@@ -84,9 +70,7 @@
         cancel();
         hardware = !!nextHardware;
         fps = next;
-        last = null;
-        nextDue = null;
-        firstTimerDelay = hardware ? 0 : 1000 / fps;
+        resetClock();
         schedule();
       },
       get running() { return active; },

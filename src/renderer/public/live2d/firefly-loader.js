@@ -338,7 +338,7 @@
     const interactionManager = app.renderer?.plugins?.interaction;
     if (interactionManager) interactionManager.useSystemTicker = false;
 
-    // 硬件模式用显示节拍，软件模式只在需要绘制时排定时器；两者静止时都不排帧。
+    // 硬件和软件模式都跟随显示节拍；软件模式在每个显示帧上限 60 帧，静止时都不排帧。
     let hardwareRendering = cfg.hardware === true;
     let targetFps = Math.min(60, Math.max(1, Number(cfg.maxFPS) || 60));
     let renderPaused = false;

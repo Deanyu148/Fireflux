@@ -31,12 +31,12 @@ function clock(refreshHz = 60) {
   }
 }
 
-test('CPU animation uses timers capped at 60 FPS and leaves no idle callbacks', () => {
+test('CPU animation follows display frames capped at 60 FPS and leaves no idle callbacks', () => {
   const c = clock(); let count = 0
   const p = createPacer({ ...c, hardware: false, fps: 60, onFrame: () => ++count < 60 })
   p.start(); p.start()
   assert.equal(c.pending.size, 1, 'repeated wakeups must not duplicate the loop')
-  assert.equal([...c.pending.values()][0].kind, 'timer')
+  assert.equal([...c.pending.values()][0].kind, 'raf')
   c.advance(1000)
   assert.equal(count, 60); assert.equal(p.running, false); assert.equal(c.pending.size, 0)
   c.advance(5000); assert.equal(count, 60)
@@ -59,12 +59,12 @@ test('GPU animation accepts every display frame without a 60 FPS software gate',
   c.advance(1000); assert.equal(count, 120)
 })
 
-test('switching to CPU mode replaces rAF with a 60 FPS timer', () => {
+test('switching to CPU mode keeps display sync while enforcing 60 FPS', () => {
   const c = clock(120); let count = 0
   const p = createPacer({ ...c, hardware: true, fps: 60, onFrame: () => { count++ } })
   p.start(); c.advance(34); p.setMode(false, 60)
   assert.equal(c.pending.size, 1)
-  assert.equal([...c.pending.values()][0].kind, 'timer')
+  assert.equal([...c.pending.values()][0].kind, 'raf')
   const before = count; c.advance(1000)
   assert.equal(count - before, 60)
   p.stop(); p.setMode(true, 60)

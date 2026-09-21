@@ -1,6 +1,6 @@
 <script lang="ts">
 	/**
-	 * 垂直拖拽分隔条：拖动调整相邻面板宽度，实时预览 —— 硬件模式逐帧跟随，软件模式 40ms 限频，
+	 * 垂直拖拽分隔条：拖动调整相邻面板宽度，实时预览 —— 硬件模式逐帧跟随，CPU 模式最高 60 帧，
 	 * 文字实时重排。
 	 *
 	 * 指示只用一个「短手柄」（与平时看到的那条短竖条同一个元素），它就在拖拽条正中，
@@ -57,9 +57,9 @@
 			rafId = requestAnimationFrame(() => {
 				rafId = null
 				const now = performance.now()
-				// 只有软件模式限频；实际硬件合成可用时按显示刷新节拍更新。
+				// CPU 模式最多每 16.67ms 更新一次；高刷新率屏幕不会把布局重排推到 60 帧以上。
 				const software = document.documentElement.dataset.renderMode !== 'hardware'
-				if (software && now - lastApply < 40) return
+				if (software && now - lastApply < 1000 / 60) return
 				lastApply = now
 				onresize(lastW)
 			})
