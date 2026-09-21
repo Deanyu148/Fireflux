@@ -370,8 +370,8 @@
 
 	async function init(): Promise<void> {
 		try {
-			const [s, status] = await Promise.all([window.api.appInit(), window.api.gpuStatus().catch(() => null)])
-			if (status) gpuStatus = status
+			// GPU 能力诊断不能阻塞主界面：部分驱动在 getGPUInfo('complete') 上可能长时间等待。
+			const s = await window.api.appInit()
 			if (s.appearance) applyAppearance(s.appearance)
 			wallpaperData = s.wallpaperData ?? null
 			live2dView = {
@@ -381,6 +381,10 @@
 			}
 			live2dSrc = live2dUrl(live2dView)
 			phase = s.valid ? 'ready' : 'onboard'
+			void window.api
+				.gpuStatus()
+				.then((status) => { gpuStatus = status })
+				.catch(() => { /* GPU 诊断失败不影响界面 */ })
 		} catch {
 			phase = 'onboard'
 		}

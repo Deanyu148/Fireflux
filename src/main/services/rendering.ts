@@ -11,15 +11,26 @@ export function getGpuStatus(): Promise<GpuStatus> {
 	if (pending) return pending
 	pending = (async () => {
 		let renderer = ''
+		let features: { webgl?: string; gpu_compositing?: string } = {}
 		try {
-			const info = await app.getGPUInfo('complete') as { auxAttributes?: { glRenderer?: string } }
-			renderer = info.auxAttributes?.glRenderer ?? ''
+			features = app.getGPUFeatureStatus()
+		} catch {
+			// GPU 状态尚未初始化时返回 unknown，不能阻塞界面启动。
+		}
+		try {
+			const infoPromise = app
+				.getGPUInfo('complete')
+				.then((info) => info as { auxAttributes?: { glRenderer?: string } })
+				.catch(() => null)
+			const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500))
+			const info = await Promise.race([infoPromise, timeout])
+			renderer = info?.auxAttributes?.glRenderer ?? ''
 		} catch {
 			// 保留功能状态，未知渲染器不冒充硬件加速。
 		}
 		return classifyGpuStatus(
 			getSettings().hardwareGpu === true,
-			app.getGPUFeatureStatus(),
+			features,
 			renderer,
 			app.commandLine.getSwitchValue('use-angle') === 'swiftshader'
 		)
