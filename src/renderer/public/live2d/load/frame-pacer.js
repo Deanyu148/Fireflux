@@ -17,6 +17,7 @@
     let handle = null;
     let last = null;
     let nextDue = null;
+    let firstTimerDelay = 0;
     let scheduledHardware = false;
 
     function cancel() {
@@ -34,8 +35,10 @@
       }
       const current = now();
       const interval = 1000 / fps;
-      if (nextDue === null) nextDue = current;
-      else {
+      if (nextDue === null) {
+        nextDue = current + firstTimerDelay;
+        firstTimerDelay = 0;
+      } else {
         nextDue += interval;
         // A slow CPU frame must not create a 4ms catch-up loop. Drop missed deadlines.
         if (nextDue <= current) nextDue = current + interval;
@@ -62,6 +65,7 @@
       cancel();
       last = null;
       nextDue = null;
+      firstTimerDelay = 0;
     }
 
     return {
@@ -70,6 +74,7 @@
         active = true;
         last = null;
         nextDue = null;
+        firstTimerDelay = 0;
         schedule();
       },
       stop,
@@ -81,6 +86,7 @@
         fps = next;
         last = null;
         nextDue = null;
+        firstTimerDelay = hardware ? 0 : 1000 / fps;
         schedule();
       },
       get running() { return active; },
