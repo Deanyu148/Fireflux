@@ -93,7 +93,7 @@ docs/            参数说明、开发笔记
 ## 许可
 
 - Live2D 模型与相关资源（`src/renderer/public/live2d/` 下的 `model/`、`load/`、`assets/`、`firefly.css`）版权归上游作者所有，使用请遵循 [Iskongkongyo/Firefly-live2d](https://github.com/Iskongkongyo/Firefly-live2d) 的许可与声明。
-- 本仓库的应用代码（主进程、界面、文档）暂未指定开源协议。
+- 本仓库的应用代码（主进程、界面、文档）以 [MIT 许可](LICENSE) 发布。
 
 ## 文档
 

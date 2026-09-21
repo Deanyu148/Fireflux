@@ -1,0 +1,37 @@
+name: 功能建议
+description: 提出一个新功能或改进
+title: "[Feature] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        这个项目有意保持边界：**只读写绑定的博客项目里的文件，再加调用本机 git**。
+        不打算加服务端、账号体系、数据库或云端同步，与这个前提冲突的建议（例如在线协作、跨设备同步、远程图床管理）大概率不会被采纳。
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你想解决什么问题
+      description: 先说场景和痛点，不必急着给方案
+      placeholder: 例如：每次发动态都要手动翻上一篇的标签，想有个「最近用过的标签」列表
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: 期望的做法
+      placeholder: 你希望界面上是什么样、怎么操作
+    validations:
+      required: false
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 备选方案 / 你现在的绕法
+    validations:
+      required: false
+  - type: textarea
+    id: extra
+    attributes:
+      label: 补充说明
+      description: 截图、参考链接、相关讨论等
+    validations:
+      required: false

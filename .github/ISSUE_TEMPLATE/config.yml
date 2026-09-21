@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 安装、数据目录与常见问题
+    url: https://github.com/loveFirefly-26710/Fireflux#readme
+    about: 装不上、数据存在哪、看板娘不显示、内嵌网页图片裂开等问题，README 里基本都有答案
+  - name: 参数说明与开发笔记
+    url: https://github.com/loveFirefly-26710/Fireflux/tree/master/docs
+    about: 想改界面参数或动手改代码，先看这两份文档

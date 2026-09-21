@@ -1,0 +1,82 @@
+name: Bug 报告
+description: 报告一个可以复现的问题
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        提交前请先确认：用的是最新 Release，并且问题能在最新版本上复现。
+
+        如果问题出在「动态发布」的内嵌网页里（图片裂开、连接失败、页面打不开），请先展开卡片左下角的「🔍 连接诊断」，
+        把面板里的记录一起贴上来——那里会写明是哪个 URL 失败、错误码是什么。
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 问题描述
+      description: 发生了什么，你期望发生什么
+      placeholder: 例如：在「配置中心 → 站点信息」里改了开关，点保存后配置没有写回，控制台出现……
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 打开「配置中心」→ 站点信息
+        2. 把「留言板页面开关」改成「关闭」
+        3. 点「保存」
+        4. 重新扫描后回到该文件，开关又变回「开启」
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志
+      description: 主进程控制台里带 [Fireflux] 的输出，或「发布上线」页的执行日志。贴之前请先去掉服务器地址、令牌等敏感信息
+      placeholder: |
+        [Fireflux] 渲染模式: 软件渲染
+        [Fireflux] 请求失败 https://... net::ERR_CONNECTION_CLOSED
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: 客户端版本
+      description: 安装包文件名或「设置」页里可以看到
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: 系统版本
+      placeholder: Windows 11 23H2（22631）
+    validations:
+      required: true
+  - type: dropdown
+    id: render
+    attributes:
+      label: 渲染模式
+      description: "启动时主进程控制台会打印「渲染模式：软件渲染 / 硬件加速（实验）」，设置页里也能看到硬件加速开关的状态"
+      options:
+        - 软件渲染
+        - 硬件加速（实验）
+        - 不确定
+    validations:
+      required: false
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: 截图
+      description: 直接把图片拖进这个框即可
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 确认
+      options:
+        - label: 我用的是最新 Release，并已确认问题能复现
+          required: true
+        - label: 我已去掉日志与截图里的敏感信息（服务器地址、令牌、私有内容）
+          required: true
