@@ -13,12 +13,13 @@ permissions:
 
 concurrency:
   group: release-${{ github.ref }}
-  cancel-in-progress: true
+  # 发布/打包不可被后续推送中断；新发布排队等待当前 NSIS/ZIP 完成。
+  cancel-in-progress: false
 
 jobs:
   windows-release:
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - name: 检出代码
         uses: actions/checkout@v5
